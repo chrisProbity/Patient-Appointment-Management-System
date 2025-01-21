@@ -7,7 +7,6 @@ using Microsoft.EntityFrameworkCore;
 using System.ComponentModel;
 using HealthcareManagementSystem.Domain.Interfaces;
 using HealthcareManagementSystem.Domain.Implementations;
-using Microsoft.AspNet.Identity;
 using Microsoft.AspNetCore.Identity;
 
 namespace HealthcareManagementSystem.API.Extentions
@@ -93,6 +92,8 @@ namespace HealthcareManagementSystem.API.Extentions
             builder.AddScoped<IPatientService, PatientService>();
             builder.AddScoped(typeof(IPasswordHasher<>), typeof(PasswordHasher<>));
             builder.AddScoped<IDoctorService, DoctorService>();
+            builder.AddScoped<IAuthenticationService, AuthenticationService>();
+            builder.AddScoped<IAppointmentService, AppointmentService>();
 
             return builder;
         }

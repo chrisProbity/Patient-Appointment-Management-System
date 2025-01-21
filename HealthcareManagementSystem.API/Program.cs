@@ -1,6 +1,8 @@
 using HealthcareManagementSystem.API.Extentions;
+using HealthcareManagementSystem.Domain.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
+AppSettingsManager.configuration = builder.Configuration;
 
 // Add services to the container.
 

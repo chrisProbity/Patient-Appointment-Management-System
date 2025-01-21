@@ -10,5 +10,6 @@
         public Guid UserId { get; set; }
         public required User User { get; set; }
         public ICollection<DoctorAvailability> DoctorAvailabilities { get; set; } = new List<DoctorAvailability>();
+        public ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
     }
 }
