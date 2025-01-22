@@ -1,5 +1,4 @@
-﻿using Azure.Core;
-using HealthcareManagementSystem.Data.DTOs.Request;
+﻿using HealthcareManagementSystem.Data.DTOs.Request;
 using HealthcareManagementSystem.Data.DTOs.Response;
 using HealthcareManagementSystem.Data.Validations;
 using HealthcareManagementSystem.Domain.Interfaces;
@@ -74,13 +73,25 @@ namespace HealthcareManagementSystem.API.Controllers
 
         [SwaggerOperation(Summary = "Endpoint for patient to update an appointment")]
         [Authorize(Policy = "PatientOnly")]
-        [HttpGet("[action]/{appointmentId:guid}")]
+        [HttpPut("[action]/{appointmentId:guid}")]
         [ProducesResponseType(typeof(GlobalResponse<AppointmentResponse>), 200)]
         [ProducesResponseType(typeof(GlobalResponse<AppointmentResponse>), 400)]
         [ProducesResponseType(typeof(GlobalResponse<AppointmentResponse>), 404)]
         [ProducesResponseType(typeof(GlobalResponse<AppointmentResponse>), 500)]
         public async Task<IActionResult> UpdateAppointment(AppointmentUpdateDto request, Guid appointmentId)
         {
+            var validation = new AppointmentUpdateDtoValidator().Validate(request);
+
+            if (!validation.IsValid)
+            {
+                var errorResponse = new GlobalResponse<string>
+                {
+                    Status = false,
+                    StatusCode = 400,
+                    Message = string.Join(",", validation.Errors.Select(s => s.ErrorMessage).ToList())
+                };
+                return BadRequest(errorResponse);
+            }
             var response = await appointmentService.UpdateAppointment(request, appointmentId);
 
             if (response.Status)
@@ -96,11 +107,11 @@ namespace HealthcareManagementSystem.API.Controllers
 
         [SwaggerOperation(Summary = "Endpoint for patient and admin to cancel an appointment")]
         [Authorize(Roles = "Patient,Admin")]
-        [HttpGet("[action]/{appointmentId:guid}")]
-        [ProducesResponseType(typeof(GlobalResponse<AppointmentResponse>), 200)]
-        [ProducesResponseType(typeof(GlobalResponse<AppointmentResponse>), 400)]
-        [ProducesResponseType(typeof(GlobalResponse<AppointmentResponse>), 404)]
-        [ProducesResponseType(typeof(GlobalResponse<AppointmentResponse>), 500)]
+        [HttpDelete("[action]/{appointmentId:guid}")]
+        [ProducesResponseType(typeof(GlobalResponse<bool>), 200)]
+        [ProducesResponseType(typeof(GlobalResponse<bool>), 400)]
+        [ProducesResponseType(typeof(GlobalResponse<bool>), 404)]
+        [ProducesResponseType(typeof(GlobalResponse<bool>), 500)]
         public async Task<IActionResult> CancelAppointment(Guid appointmentId)
         {
             var response = await appointmentService.CancelAppointment(appointmentId);
