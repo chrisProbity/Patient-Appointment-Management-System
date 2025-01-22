@@ -8,5 +8,6 @@
         public required Doctor Doctor { get; set; }
         public DateTime Date { get; set; }
         public required string Time { get; set; }
+        public bool IsCancelled { get; set; }
     }
 }

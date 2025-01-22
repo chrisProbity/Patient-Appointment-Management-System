@@ -1,4 +1,5 @@
-﻿using HealthcareManagementSystem.Data.DTOs.Request;
+﻿using Azure.Core;
+using HealthcareManagementSystem.Data.DTOs.Request;
 using HealthcareManagementSystem.Data.DTOs.Response;
 using HealthcareManagementSystem.Data.Validations;
 using HealthcareManagementSystem.Domain.Interfaces;
@@ -69,6 +70,50 @@ namespace HealthcareManagementSystem.API.Controllers
             var response = await appointmentService.GetAllAppointments();
 
             return Ok(response);
+        }
+
+        [SwaggerOperation(Summary = "Endpoint for patient to update an appointment")]
+        [Authorize(Policy = "PatientOnly")]
+        [HttpGet("[action]/{appointmentId:guid}")]
+        [ProducesResponseType(typeof(GlobalResponse<AppointmentResponse>), 200)]
+        [ProducesResponseType(typeof(GlobalResponse<AppointmentResponse>), 400)]
+        [ProducesResponseType(typeof(GlobalResponse<AppointmentResponse>), 404)]
+        [ProducesResponseType(typeof(GlobalResponse<AppointmentResponse>), 500)]
+        public async Task<IActionResult> UpdateAppointment(AppointmentUpdateDto request, Guid appointmentId)
+        {
+            var response = await appointmentService.UpdateAppointment(request, appointmentId);
+
+            if (response.Status)
+            {
+                return Ok(response);
+            }
+            if(response.Status && response.StatusCode == 404)
+            {
+                return NotFound(response);
+            }
+            return BadRequest(response);
+        }
+
+        [SwaggerOperation(Summary = "Endpoint for patient and admin to cancel an appointment")]
+        [Authorize(Roles = "Patient,Admin")]
+        [HttpGet("[action]/{appointmentId:guid}")]
+        [ProducesResponseType(typeof(GlobalResponse<AppointmentResponse>), 200)]
+        [ProducesResponseType(typeof(GlobalResponse<AppointmentResponse>), 400)]
+        [ProducesResponseType(typeof(GlobalResponse<AppointmentResponse>), 404)]
+        [ProducesResponseType(typeof(GlobalResponse<AppointmentResponse>), 500)]
+        public async Task<IActionResult> CancelAppointment(Guid appointmentId)
+        {
+            var response = await appointmentService.CancelAppointment(appointmentId);
+
+            if (response.Status)
+            {
+                return Ok(response);
+            }
+            if (response.Status && response.StatusCode == 404)
+            {
+                return NotFound(response);
+            }
+            return BadRequest(response);
         }
     }
 }
