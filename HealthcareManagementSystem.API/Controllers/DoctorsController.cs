@@ -2,8 +2,10 @@
 using HealthcareManagementSystem.Data.DTOs.Response;
 using HealthcareManagementSystem.Data.Validations;
 using HealthcareManagementSystem.Domain.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
+using System.Security.Claims;
 
 namespace HealthcareManagementSystem.API.Controllers
 {
@@ -41,6 +43,7 @@ namespace HealthcareManagementSystem.API.Controllers
         }
 
         [SwaggerOperation(Summary = "Endpoint for Doctor to update their profile")]
+        [Authorize(Policy = "DoctorOnly")]
         [HttpPut("[action]/{doctorId}")]
         [ProducesResponseType(typeof(GlobalResponse<DoctorResponseDto>), 200)]
         [ProducesResponseType(typeof(GlobalResponse<DoctorResponseDto>), 400)]
@@ -76,12 +79,15 @@ namespace HealthcareManagementSystem.API.Controllers
         }
 
         [SwaggerOperation(Summary = "Endpoint for Doctor to view their profile")]
-        [HttpGet("[action]/{doctorId}")]
+        [Authorize(Policy = "DoctorOnly")]
+        [HttpGet("[action]")]
         [ProducesResponseType(typeof(GlobalResponse<DoctorResponseDto>), 200)]
         [ProducesResponseType(typeof(GlobalResponse<DoctorResponseDto>), 404)]
         [ProducesResponseType(typeof(GlobalResponse<DoctorResponseDto>), 500)]
-        public async Task<IActionResult> GetDoctor(Guid doctorId)
+        public async Task<IActionResult> GetDoctor()
         {
+            Guid doctorId = Guid.Parse(User!.FindFirst(x => x.Type == ClaimTypes.NameIdentifier)!.Value);
+
             var response = await doctorService.GetDoctor(doctorId);
 
             if (response.Status)
@@ -95,7 +101,8 @@ namespace HealthcareManagementSystem.API.Controllers
             return BadRequest(response);
         }
 
-        [SwaggerOperation(Summary = "Endpoint for admin to view all Doctors")]
+        [SwaggerOperation(Summary = "Endpoint for admin and patient to view all Doctors")]
+        [Authorize(Roles = "Admin,Patient")]
         [HttpGet("[action]")]
         [ProducesResponseType(typeof(GlobalResponse<DoctorResponseDto>), 200)]
         [ProducesResponseType(typeof(GlobalResponse<DoctorResponseDto>), 500)]
@@ -107,11 +114,12 @@ namespace HealthcareManagementSystem.API.Controllers
         }
 
         [SwaggerOperation(Summary = "Endpoint for Doctor to create their available period")]
-        [HttpPost("[action]/{doctorId}")]
+        [Authorize(Policy = "DoctorOnly")]
+        [HttpPost("[action]")]
         [ProducesResponseType(typeof(GlobalResponse<DoctorAvailabilityResponse>), 200)]
         [ProducesResponseType(typeof(GlobalResponse<DoctorAvailabilityResponse>), 400)]
         [ProducesResponseType(typeof(GlobalResponse<DoctorAvailabilityResponse>), 500)]
-        public async Task<IActionResult> CreateDoctorAvailablePeriod(DoctorAvailablePeriod model, Guid doctorId)
+        public async Task<IActionResult> CreateDoctorAvailablePeriod(DoctorAvailablePeriod model)
         {
             var validation = new DoctorAvailablePeriodValidator().Validate(model);
 
@@ -125,6 +133,8 @@ namespace HealthcareManagementSystem.API.Controllers
                 };
                 return BadRequest(errorResponse);
             }
+
+            Guid doctorId = Guid.Parse(User!.FindFirst(x => x.Type == ClaimTypes.NameIdentifier)!.Value);
 
             var response = await doctorService.CreateAvailablePeriod(model, doctorId);
 

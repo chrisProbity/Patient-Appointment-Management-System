@@ -2,8 +2,10 @@
 using HealthcareManagementSystem.Data.DTOs.Response;
 using HealthcareManagementSystem.Data.Validations;
 using HealthcareManagementSystem.Domain.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
+using System.Security.Claims;
 
 namespace HealthcareManagementSystem.API.Controllers
 {
@@ -41,6 +43,7 @@ namespace HealthcareManagementSystem.API.Controllers
         }
 
         [SwaggerOperation(Summary = "Endpoint for patient's to update their profile")]
+        [Authorize(Policy = "PatientOnly")]
         [HttpPut("[action]/{patientId}")]
         [ProducesResponseType(typeof(GlobalResponse<CreatePatientResponseDto>), 200)]
         [ProducesResponseType(typeof(GlobalResponse<CreatePatientResponseDto>), 400)]
@@ -76,12 +79,15 @@ namespace HealthcareManagementSystem.API.Controllers
         }
 
         [SwaggerOperation(Summary = "Endpoint for patient to view their profile")]
-        [HttpGet("[action]/{patientId}")]
+        [Authorize(Policy = "PatientOnly")]
+        [HttpGet("[action]")]
         [ProducesResponseType(typeof(GlobalResponse<CreatePatientResponseDto>), 200)]
         [ProducesResponseType(typeof(GlobalResponse<CreatePatientResponseDto>), 404)]
         [ProducesResponseType(typeof(GlobalResponse<CreatePatientResponseDto>), 500)]
-        public async Task<IActionResult> GetPatient(Guid patientId)
+        public async Task<IActionResult> GetPatient()
         {
+            Guid patientId = Guid.Parse(User!.FindFirst(x => x.Type == ClaimTypes.NameIdentifier)!.Value);
+
             var response = await patientService.GetPatient(patientId);
 
             if(response.Status)
@@ -96,6 +102,7 @@ namespace HealthcareManagementSystem.API.Controllers
         }
 
         [SwaggerOperation(Summary = "Endpoint for admin to view all patients")]
+        [Authorize(Policy = "AdminOnly")]
         [HttpGet("[action]")]
         [ProducesResponseType(typeof(GlobalResponse<CreatePatientResponseDto>), 200)]
         [ProducesResponseType(typeof(GlobalResponse<CreatePatientResponseDto>), 500)]

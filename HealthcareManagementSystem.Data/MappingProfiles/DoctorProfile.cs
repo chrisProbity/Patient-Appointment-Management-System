@@ -17,6 +17,7 @@ namespace HealthcareManagementSystem.Data.MappingProfiles
             CreateMap<DoctorAvailablePeriod, DoctorAvailability>();
             CreateMap<DoctorAvailability, DoctorAvailabilityResponse>()
                 .ForMember(m => m.Doctor, f => f.Ignore());
+            CreateMap<UserDto, User>();
         }
     }
 }

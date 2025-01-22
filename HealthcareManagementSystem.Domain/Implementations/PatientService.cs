@@ -71,7 +71,7 @@ namespace HealthcareManagementSystem.Domain.Implementations
 
         public async Task<GlobalResponse<CreatePatientResponseDto>> GetPatient(Guid patientId)
         {
-            var patient = await dbContext.Patients.FirstOrDefaultAsync(x => x.Id == patientId);
+            var patient = await dbContext.Users.Include(i => i.Patient).FirstOrDefaultAsync(x => x.Id == patientId);
 
             if (patient == null)
             {
@@ -88,7 +88,7 @@ namespace HealthcareManagementSystem.Domain.Implementations
                 Status = true,
                 StatusCode = 200,
                 Message = "Patient's record was fetched successful",
-                Data = mapper.Map<CreatePatientResponseDto>(patient)
+                Data = mapper.Map<CreatePatientResponseDto>(patient.Patient)
             };
 
         }

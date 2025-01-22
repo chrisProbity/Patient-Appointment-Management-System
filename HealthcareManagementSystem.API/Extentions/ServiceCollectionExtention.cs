@@ -8,6 +8,7 @@ using System.ComponentModel;
 using HealthcareManagementSystem.Domain.Interfaces;
 using HealthcareManagementSystem.Domain.Implementations;
 using Microsoft.AspNetCore.Identity;
+using HealthcareManagementSystem.Domain.Helpers;
 
 namespace HealthcareManagementSystem.API.Extentions
 {
@@ -84,6 +85,8 @@ namespace HealthcareManagementSystem.API.Extentions
                 var container = serviceScope.ServiceProvider.GetService<Container>();
                 context!.Database!.Migrate();
                 context.Database.EnsureCreated();
+                var seeder = serviceScope.ServiceProvider.GetService<DataSeeder>();
+                seeder.Seed().Wait();
             }
         }
 
@@ -94,7 +97,7 @@ namespace HealthcareManagementSystem.API.Extentions
             builder.AddScoped<IDoctorService, DoctorService>();
             builder.AddScoped<IAuthenticationService, AuthenticationService>();
             builder.AddScoped<IAppointmentService, AppointmentService>();
-
+            builder.AddTransient<DataSeeder>();
             return builder;
         }
     }

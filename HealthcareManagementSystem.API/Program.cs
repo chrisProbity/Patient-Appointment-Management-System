@@ -1,7 +1,14 @@
 using HealthcareManagementSystem.API.Extentions;
+using HealthcareManagementSystem.API.Middlewares;
 using HealthcareManagementSystem.Domain.Helpers;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+var logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .Enrich.FromLogContext()
+    .CreateLogger();
+builder.Host.UseSerilog(logger);
 AppSettingsManager.configuration = builder.Configuration;
 
 // Add services to the container.
@@ -26,7 +33,7 @@ if (app.Environment.IsDevelopment())
 app.UseSwagger();
 app.UseSwaggerUI();
 app.ConfigureMigration();
-
+app.UseMiddleware<ExceptionMiddleware>();
 app.UseHttpsRedirection();
 
 app.UseAuthorization();

@@ -11,9 +11,20 @@ namespace HealthcareManagementSystem.Domain.Implementations
 {
     public class DoctorService(HealthMgtSystemDbContext dbContext, IMapper mapper, IPasswordHasher<User> passwordHasher) : IDoctorService
     {
-        public async Task<GlobalResponse<DoctorAvailabilityResponse>> CreateAvailablePeriod(DoctorAvailablePeriod availablePeriod, Guid doctorId)
+        public async Task<GlobalResponse<DoctorAvailabilityResponse>> CreateAvailablePeriod(DoctorAvailablePeriod request, Guid doctorId)
         {
-            bool availabilityPeriodExists = await dbContext.DoctorAvailabilities.AnyAsync(x => x.Day.ToLower() == availablePeriod.Day.ToLower() && x.ResumptionTime.ToLower() == availablePeriod.ClosingTime.ToLower() && x.DoctorId == doctorId);
+            var doctorProfile = await dbContext.Users.Include(i => i.Doctor).FirstOrDefaultAsync(x => x.Id ==doctorId);
+
+            if (doctorProfile == null)
+            {
+                return new GlobalResponse<DoctorAvailabilityResponse>
+                {
+                    Status = false,
+                    StatusCode = 400,
+                    Message = "Doctor profile could not be fetched"
+                };
+            }
+            bool availabilityPeriodExists = await dbContext.DoctorAvailabilities.AnyAsync(x => x.Day.ToLower() ==           request.Day.ToLower() && x.ResumptionTime.ToLower() == request.ResumptionTime.ToLower() && x.ClosingTime.ToLower() == request.ClosingTime.ToLower() && x.DoctorId == doctorProfile!.Doctor!.Id);
 
             if (availabilityPeriodExists)
             {
@@ -25,8 +36,8 @@ namespace HealthcareManagementSystem.Domain.Implementations
                 };
             }
 
-            var doctor = await dbContext.Doctors.FirstOrDefaultAsync(x => x.Id == doctorId);
-            var availability = mapper.Map<DoctorAvailability>(availablePeriod);
+            var doctor  = doctorProfile.Doctor;
+            var availability = mapper.Map<DoctorAvailability>(request);
             availability.Doctor = doctor;
 
             await dbContext.DoctorAvailabilities.AddAsync(availability);
@@ -104,7 +115,7 @@ namespace HealthcareManagementSystem.Domain.Implementations
 
         public async Task<GlobalResponse<DoctorResponseDto>> GetDoctor(Guid doctorId)
         {
-            var doctor = await dbContext.Patients.FirstOrDefaultAsync(x => x.Id == doctorId);
+            var doctor = await dbContext.Users.Include(i => i.Doctor).FirstOrDefaultAsync(x => x.Id == doctorId);
 
             if (doctor == null)
             {
@@ -116,12 +127,14 @@ namespace HealthcareManagementSystem.Domain.Implementations
                 };
             }
 
+            var doctorResponse = mapper.Map<DoctorResponseDto>(doctor.Doctor);
+
             return new GlobalResponse<DoctorResponseDto>
             {
                 Status = true,
                 StatusCode = 200,
                 Message = "Doctor's record was fetched successful",
-                Data = mapper.Map<DoctorResponseDto>(doctor)
+                Data = doctorResponse
             };
 
         }

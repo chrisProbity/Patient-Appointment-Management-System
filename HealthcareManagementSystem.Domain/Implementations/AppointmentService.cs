@@ -3,6 +3,7 @@ using HealthcareManagementSystem.Data.DataContext;
 using HealthcareManagementSystem.Data.DTOs.Request;
 using HealthcareManagementSystem.Data.DTOs.Response;
 using HealthcareManagementSystem.Data.Models;
+using HealthcareManagementSystem.Data.Validations;
 using HealthcareManagementSystem.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
@@ -63,7 +64,9 @@ namespace HealthcareManagementSystem.Domain.Implementations
                 };
             }
 
-            var doctorWorkHour = doctor.DoctorAvailabilities.FirstOrDefault(x => x.Day == nameof(request.AppointmentDate.DayOfWeek));
+            var dayofWeek = Helper.DayofWeekToString(request.AppointmentDate.DayOfWeek);
+            
+            var doctorWorkHour = doctor.DoctorAvailabilities.FirstOrDefault(x => x.Day.ToUpper() == dayofWeek.ToUpper());
 
             if (doctorWorkHour == null)
             {
@@ -71,7 +74,7 @@ namespace HealthcareManagementSystem.Domain.Implementations
                 {
                     Status = false,
                     StatusCode = 400,
-                    Message = "The doctor is not available for this date."
+                    Message = $"The doctor is not available on {dayofWeek}s"
                 };
             }
 
@@ -134,6 +137,7 @@ namespace HealthcareManagementSystem.Domain.Implementations
                      Id = s.Id,
                      PatientName = $"{s.Patient.FirstName} {s.Patient.LastName}",
                      PatientMRN = s.Patient.MRN,
+                     DoctorName = $"{s.Doctor.FirstName} {s.Doctor.LastName}",
                      Date = s.Date,
                      Time = s.Time
                  }).ToListAsync();
@@ -167,5 +171,6 @@ namespace HealthcareManagementSystem.Domain.Implementations
                 Data = appointments
             };
         }
+
     }
 }

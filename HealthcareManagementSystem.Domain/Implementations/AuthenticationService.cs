@@ -41,7 +41,7 @@ namespace HealthcareManagementSystem.Domain.Implementations
 
             return new GlobalResponse<LoginResponse>
             {
-                Status = false,
+                Status = true,
                 StatusCode = 200,
                 Message = "Logged in successfully",
                 Data = new LoginResponse
